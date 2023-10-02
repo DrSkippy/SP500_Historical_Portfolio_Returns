@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "2023-09-30-sp500-returns"
+version = "0.1.0"
+description = ""
+authors = ["Scott Hendrickson <scott@drskippy.net>"]
+readme = "README.md"
+packages = [{include = "2023_09_30_sp500_returns"}]
+
+[tool.poetry.dependencies]
+python = "3.10.13"
+numpy = "^1.26.0"
+pandas = "^2.1.1"
+matplotlib = "^3.8.0"
+notebook = "^7.0.4"
+jupyter = "^1.0.0"
+seaborn = "^0.13.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
