@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "2023-09-30-sp500-returns"
+name = "SP500_Historical_Portfolio_Returns"
 version = "0.1.0"
 description = ""
 authors = ["Scott Hendrickson <scott@drskippy.net>"]
 readme = "README.md"
-packages = [{include = "2023_09_30_sp500_returns"}]
+packages = [{include = "iSP500_Historical_Portfolio_Returns"}]
 
 [tool.poetry.dependencies]
 python = "3.10.13"
