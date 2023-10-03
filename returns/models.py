@@ -2,7 +2,7 @@ import datetime
 
 class Model:
 
-    name = "Buy&Hold"
+    name = "BuyHold"
     def __init__(self, capital=10000):
         self.init_capital = capital
         self.shares = 0
