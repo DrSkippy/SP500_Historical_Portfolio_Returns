@@ -50,7 +50,15 @@ class Model:
 class MixedModel(Model):
     name = "BettingMix"
 
+    def __init__(self, capital=10000, bond_fract=0.4, rebalance_period=90):
+        self.init_capital = capital
+        self.shares = 0
+        self.trades = []  # list of tuples (date, price, shares)
+        self.init_bond_frac = bond_fract
+        self.init_rebalance_period = rebalance_period
+
     def model_init(self, start_date, years=1):
+        self.name += f"_{self.init_bond_frac:.2}_{self.init_rebalance_period}"
         self.capital = self.init_capital
         self.shares = 0
         self.trades = []  # list of tuples (date, price, shares)
@@ -60,11 +68,11 @@ class MixedModel(Model):
         self.first_trigger = False
         self.last_trigger = False
         #
-        self.bond_frac = .4
+        self.bond_frac = self.init_bond_frac
         self.stock_frac = 1 - self.bond_frac
         self.interest_rate = .02
         self.interest_factor = self.interest_rate / 365
-        self.rebalance_period = datetime.timedelta(days=90)
+        self.rebalance_period = datetime.timedelta(days=self.init_rebalance_period)
         self.last_rebalance = self.start_date
 
     def trade(self, date, price):

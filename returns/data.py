@@ -30,7 +30,7 @@ def get_data():
     return data, header
 
 
-def get_model_run(suffix, years=[1,2,3,4]):
+def get_model_run(suffix, years=[1, 2, 3, 4]):
     res = {}
     for y in years:
         fn = f"../out_data/returns_{y}_{suffix}"
@@ -50,3 +50,12 @@ def get_model_run(suffix, years=[1,2,3,4]):
         print(f"Read {len(data)} rows")
         print(f"Fields = {header}")
     return res, header
+
+
+def select_file(files):
+    suffixes = list(set(["_".join(x.split("_")[2:]) for x in files]))
+    print("\n".join(f"{i} - {fn}" for i, fn in enumerate(suffixes)))
+    f = input("choose a number: ")
+    fs = suffixes[int(f)]
+    print(f"Selected: {fs}")
+    return fs

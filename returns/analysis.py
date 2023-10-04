@@ -6,6 +6,7 @@ from matplotlib import pyplot as plt
 
 from returns.models import *
 
+
 def aggregate_returns(returns_data, show=False):
     # returns_data = [(date, return frac, time span, model_name), ...]
     r_data = np.array(returns_data).T
@@ -31,10 +32,21 @@ def aggregate_returns(returns_data, show=False):
         plt.show()
     return ts, r_losers, r_mean, r_median, r_mode, r_std, mn
 
-def plot_trend(trend, index=1):
-    _trend = np.array(trend).T[:index+1]
+
+def plot_trend(trend, index=1, title="% lossy start days", trend2=None):
+    _trend = np.array(trend).T[:index + 1]
     plt.plot(_trend[0].astype(float), _trend[index].astype(float))
-    plt.ylabel("% lossy start days")
+    plt.ylabel(title)
     plt.xlabel("years returns")
+    if trend2 is not None:
+        _trend2 = np.array(trend2).T[:index + 1]
+        plt.plot(_trend2[0].astype(float), _trend2[index].astype(float))
+    plt.legend()
+    plt.show()
 
 
+def get_trend(data):
+    trend = []
+    for k, v in data.items():
+        trend.append(aggregate_returns(v, show=True))
+    return trend

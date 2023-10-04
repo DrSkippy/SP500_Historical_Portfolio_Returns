@@ -24,16 +24,18 @@ def model_tester(model, data, index=5, years=10, status=False):
     return rets
 
 def model_test_manager(years, date_str):
-    m = MixedModel()
     d, h = get_data()
     index = 5
-    rets = model_tester(m, d, index=index, years=years, status=False)
-    fn = f"{path}returns_{years}_{rets[0][3]}_{date_str}.csv"
-    with open(fn, "w") as outfile:
-        writer = csv.writer(outfile)
-        writer.writerow(["date", "return", "time_span", "model_name"])
-        for r in rets:
-            writer.writerow(r)
+    for i in [0.2, 0.6]:
+        for j in [90, 180]:
+            m = MixedModel(bond_fract=i, rebalance_period=j)
+            rets = model_tester(m, d, index=index, years=years, status=False)
+            fn = f"{path}returns_{years}_{rets[0][3]}_{date_str}.csv"
+            with open(fn, "w") as outfile:
+                writer = csv.writer(outfile)
+                writer.writerow(["date", "return", "time_span", "model_name"])
+                for r in rets:
+                    writer.writerow(r)
 
 if __name__ == '__main__':
     date_str = datetime.datetime.now().strftime("%Y-%m-%d_%H%M")
