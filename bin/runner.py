@@ -28,7 +28,7 @@ def model_test_manager(years, date_str):
     index = 5
     for i in [0.2, 0.6]:
         for j in [90, 180]:
-            m = MixedModel(bond_fract=i, rebalance_period=j)
+            m = KellyModel(bond_fract=i, rebalance_period=j)
             rets = model_tester(m, d, index=index, years=years, status=False)
             fn = f"{path}returns_{years}_{rets[0][3]}_{date_str}.csv"
             with open(fn, "w") as outfile:

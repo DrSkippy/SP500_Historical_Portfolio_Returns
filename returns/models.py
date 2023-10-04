@@ -47,8 +47,8 @@ class Model:
         return self.start_date, ret, time_span.days / 365, self.name
 
 
-class MixedModel(Model):
-    name = "BettingMix"
+class KellyModel(Model):
+    name = "Kelly"
 
     def __init__(self, capital=10000, bond_fract=0.4, rebalance_period=90):
         self.init_capital = capital
@@ -97,5 +97,77 @@ class MixedModel(Model):
             self.last_rebalance = date
         else:
             delta_shares = 0
+        return
+
+class InsuranceModel(Model):
+    name = "Insurance"
+
+    def __init__(self, capital=10000, insurance_frac=0.10, insurance_period=90, insurance_rate=-0.005, insurance_deductible=0.15):
+        self.init_capital = capital
+        self.shares = 0
+        self.trades = []  # list of tuples (date, price, shares)
+        # Assume insurance covers the losses above a minimum size (deductible?)
+        self.init_insurance_frac = insurance_frac  # capital allocated to insurance strategy
+        self.init_insurance_period = insurance_period # period of insurance rate
+        self.init_insurance_rate = insurance_rate  # insurance rate
+        self.init_insurance_deductible = insurance_deductible  # insurance covers losses over this large in period
+
+    def model_init(self, start_date, years=1):
+        self.name += f"_{self.init_insurance_frac:.2}_{self.init_insurance_period}"
+        self.capital = self.init_capital
+        self.shares = 0
+        self.trades = []  # list of tuples (date, price, shares)
+        #
+        self.start_date = start_date
+        self.end_date = start_date + datetime.timedelta(days=365 * years)
+        self.first_trigger = False
+        self.last_trigger = False
+        #
+        self.insurance_frac = self.init_insurance_frac
+        self.stock_frac = 1 - self.insurance_frac
+        self.insurance_rate = self.init_insurance_rate
+        self.insurance_rate_factor = self.insurance_rate / 365
+        self.insurance_deductible = self.init_insurance_deductible
+        self.rebalance_period = datetime.timedelta(days=self.init_insurance_period)
+        self.last_rebalance = self.start_date
+        self.last_price = []   # list of prices for losses days
+        self.losses_days = 10  # number of days to calculate losses
+
+    def trade(self, date, price):
+        if date >= self.start_date and not self.first_trigger:
+            self.shares = self.stock_frac * self.capital / price  # start by buying stocks
+            self.capital -= self.shares * price  # reduce cash capital by the stock purchase
+            self.first_trigger = True
+            self.trades.append((date, price, self.shares, self.capital, self.shares))
+        elif date >= self.end_date and not self.last_trigger:
+            self.capital += self.shares * price  # sell all stocks
+            self.shares = 0
+            self.last_trigger = True
+            self.trades.append((date, price, -self.shares, self.capital, self.shares))
+        elif date >= self.last_rebalance + self.rebalance_period and self.first_trigger and not self.last_trigger:
+            self.capital *= (1. - self.insurance_rate_factor) ** ((date - self.last_rebalance).days)  # insurance payment
+            stock_value = self.shares * price             # current stock value
+            total_capital = self.capital + stock_value
+            delta_shares = self.stock_frac * total_capital / price - self.shares
+            self.capital -= delta_shares * price   # rebalance
+            self.shares += delta_shares
+            self.trades.append((date, price, delta_shares, self.capital, self.shares))
+            self.last_rebalance = date
+        else:
+            delta_shares = 0
+
+        if len(self.last_price) < self.losses_days:
+            self.last_price.append(price)
+        else:
+            start_price = self.last_price.pop(0)
+            loss = (price - start_price) / start_price
+            if loss < -self.insurance_deductible:
+                # insurance pays out
+                self.capital -= self.capital * loss
+                self.trades.append((date, price, 0, self.capital, self.shares))
+                self.last_price = [price]
+            else:
+                self.last_price.append(price)
+
         return
 
