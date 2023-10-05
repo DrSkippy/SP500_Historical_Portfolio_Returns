@@ -26,7 +26,7 @@ def model_tester(model, data, index=5, years=10, status=False):
 def model_test_manager(years, date_str):
     d, h = get_data()
     index = 5
-    for i in [0.2, 0.6]:
+    for i in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]:
         for j in [90, 180]:
             m = KellyModel(bond_fract=i, rebalance_period=j)
             rets = model_tester(m, d, index=index, years=years, status=False)
