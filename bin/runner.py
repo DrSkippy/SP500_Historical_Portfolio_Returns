@@ -5,6 +5,14 @@ from itertools import repeat
 
 from returns.data import *
 from returns.models import *
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(levelname)s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S',
+                    filename='app.log',
+                    filemode='w')
 
 path = "./out_data/"
 
@@ -24,7 +32,7 @@ def model_tester(model, data, index=5, years=10, status=False):
     return rets
 
 def model_test_manager(years, date_str):
-    d, h = get_data()
+    d, h = get_sp500()
     index = 5
     for i in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]:
         for j in [90, 180]:
