@@ -43,9 +43,10 @@ class Model:
         pass
 
     def trade(self, date, price):
+        potential_trade = True
         if date >= self.start_date <= date <= self.end_date:
             # inside the trading window
-            logger.info(f"Trading on {date}")
+            logger.info(f"In trading window on {date}")
             if self.first_trigger:
                 logger.info("First trade ({date})")
                 self.first_trigger = False
@@ -53,12 +54,16 @@ class Model:
             else:
                 # inside the trading window, but not first or last
                 self.daily_trade(date, price)
-        elif date > self.end_date and self.elf.last_trigger:
+        elif date > self.end_date and self.last_trigger:
             logger.info("Last trade ({date})")
             self.last_trigger = False
             self.last_trade(date, price)
-        logger.info(
-            f"After trading on {date}: ${self.capital} and {self.shares} shares")
+        else:
+            potential_trade = False
+
+        if potential_trade:
+            logger.info(
+                f"After trading on {date}: ${self.capital} and {self.shares} shares")
         return
 
     def status(self):
@@ -72,13 +77,13 @@ class Model:
 
     def yearly_returns(self, total_returns, period_years):
         # Estimate the yearly compounding rate from total returns
-        return math.exp(math.ln(total_returns) / period_years) - 1.
+        return math.exp(math.log(total_returns) / period_years) - 1.
 
     def total_returns(self):
         time_span = self.trades[-1][0] - self.trades[0][0]
         returns = (self.capital - self.init_capital) / self.init_capital
-        yrl_ret = self.yearly_returns(returns, time_span.years)
-        return self.start_date, returns, yrl_ret, time_span.years, self.model_name
+        yrl_ret = self.yearly_returns(returns, time_span.days/365)
+        return self.start_date, returns, yrl_ret, time_span.days/365, self.model_name
 
 
 class KellyModel(Model):
@@ -175,7 +180,6 @@ class InsuranceModel(KellyModel):
         self.insurance_frac = self.init_insurance_frac
         self.stock_frac = 1 - self.insurance_frac
         self.insurance_rate = self.init_insurance_rate
-        self.insurance_rate_factor = self.insurance_rate / 365
         self.insurance_deductible = self.init_insurance_deductible
         self.rebalance_period = datetime.timedelta(days=self.init_insurance_period)
         self.last_rebalance = self.start_date
@@ -205,5 +209,5 @@ class InsuranceModel(KellyModel):
                 self.last_price.append(price)
 
         if date >= self.last_rebalance + self.rebalance_period and not payout:
-            _price = (price, -self.insurance_rate_factor)
+            _price = (price, -self.insurance_rate)
             self.rebalance(date, _price)

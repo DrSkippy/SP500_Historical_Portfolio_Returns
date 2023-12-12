@@ -9,7 +9,7 @@ import logging
 
 # Configure logging
 logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s %(levelname)s %(message)s',
+                    format='%(process)d %(asctime)s %(levelname)s %(funcName)20s() %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
                     filename='app.log',
                     filemode='w')
@@ -41,13 +41,30 @@ def model_tester(model, data, years=10, status=False):
             model.status()
             logging.debug("Model status checked after trading")
 
-        rets.append(model.returns())
+        rets.append(model.total_returns())
         if status:
             logging.info(f"Returns = {rets[-1][1]:5.2%}")
         test_start_date += test_interval
 
     logging.info("Model testing completed")
     return rets
+
+def model_generator():
+    """
+    Generates models for testing.
+    """
+    for i in [0.1, 0.2, 0.3, 0.4, 0.5]:
+        for j in [90, 180]:
+            logging.debug(f"Testing KellyModel with bond_fract={i}, rebalance_period={j}")
+            yield KellyModel(bond_fract=i, rebalance_period=j)
+
+
+def model_generator2():
+    """
+    Generates models for testing.
+    """
+    logging.debug(f"Testing Buy and Hold Model")
+    yield Model()
 
 def model_test_manager(years, date_str):
     """
@@ -57,23 +74,21 @@ def model_test_manager(years, date_str):
 
     d, h = get_combined_data()
 
-    for i in [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7]:
-        for j in [90, 180]:
-            m = KellyModel(bond_fract=i, rebalance_period=j)
-            logging.debug(f"Testing KellyModel with bond_fract={i}, rebalance_period={j}")
-            rets = model_tester(m, d, years=years, status=False)
+    for m in model_generator2():
+        rets = model_tester(m, d, years=years, status=False)
 
-            fn = f"{path}returns_{years}_{rets[0][3]}_{date_str}.csv"
-            logging.info(f"Writing results to {fn}")
+        fn = f"{path}returns_{years}_{rets[0][3]}_{date_str}.csv"
+        logging.info(f"Writing results to {fn}")
 
-            with open(fn, "w") as outfile:
-                writer = csv.writer(outfile)
-                writer.writerow(["date", "return", "time_span", "model_name"])
-                for r in rets:
-                    writer.writerow(r)
+        with open(fn, "w") as outfile:
+            writer = csv.writer(outfile)
+            writer.writerow(["date", "return", "time_span", "model_name"])
+            for r in rets:
+                writer.writerow(r)
 
 if __name__ == '__main__':
-    date_str = datetime.datetime.now().strftime("%Y-%m-%d_%H%M")
+    # date_str = datetime.datetime.now().strftime("%Y-%m-%d_%H%M")
+    date_str = "2023-09-29_0000"
     p = mp.Pool()
     args = zip(range(1, 16), repeat(date_str))
     p.starmap(model_test_manager, args)
