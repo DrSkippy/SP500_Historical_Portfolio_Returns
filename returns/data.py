@@ -17,7 +17,7 @@ FMT_out = "%Y-%m-%d"
 sp500_index = 5
 interest_index = 1
 combined_sp500_index = sp500_index
-combined_interest_index = sp500_index + interest_index
+combined_interest_index = 6 + interest_index
 
 
 def get_combined_data():
