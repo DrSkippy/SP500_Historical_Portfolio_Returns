@@ -21,8 +21,8 @@ def model_tester(model, data, years=10):
     """
     Tests the given model on the provided data for the specified number of years.
     """
-    test_interval = datetime.timedelta(days=STRIDE)
-    test_start_date = data[0][0]
+    test_interval = datetime.timedelta(days=STRIDE_DAYS)
+    test_start_date = data[0][0] # first (oldest) date in data
     model_returns = []
 
     logging.info("Starting model testing")

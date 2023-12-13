@@ -4,9 +4,9 @@ import math
 
 logger = logging.getLogger(__name__)
 
+STRIDE_DAYS = 3  # stride for data sampling
+PADDING_TIME_DELTA = datetime.timedelta(days=2 * STRIDE_DAYS)  # days to pad the jumps in the data
 
-STRIDE = 3 # stride for data sampling
-PADDING_TIME_DELTA = datetime.timedelta(days=2 * STRIDE) # days to pad the jumps in the data
 
 class Model:
     model_name = "Buy_Hold"
@@ -53,8 +53,7 @@ class Model:
 
     def trade(self, date, price):
         skip_to_date = None
-        potential_trade = True
-        if self.start_date <= date <= self.end_date:
+        if self.start_date <= date < self.end_date:
             # inside the trading window
             logger.info(f"In trading window on {date}")
             if self.first_trigger:
@@ -64,46 +63,63 @@ class Model:
             else:
                 # inside the trading window, but not first or last
                 skip_to_date = self.daily_trade(date, price)
-        elif date > self.end_date and self.last_trigger:
+        elif date >= self.end_date and self.last_trigger:
             logger.info(f"Last trade ({date})")
             self.last_trigger = False
             self.last_trade(date, price)
         else:
-            potential_trade = False
+            return skip_to_date
 
-        if potential_trade:
-            logger.info(
-                f"After trading on {date}: ${self.capital} and {self.shares} shares")
+        logger.info(f"After trading on {date}: ${self.capital} and {self.shares} shares")
         return skip_to_date
 
     def status(self):
         status_str = (f"#### STATUS: Initial Capital={self.init_capital:10.2f} "
-                      "Capital={self.capital:10.2f} Shares={self.shares:10.2f} "
-                      "Trades={len(self.trades)}")
+                      f"Capital={self.capital:10.2f} Shares={self.shares:10.2f} "
+                      f"Trades={len(self.trades)}")
         status_str_list = [status_str]
         for x in self.trades:
-            status_str_list.append(f"{x[0]} ({x[1][0]:10.2f}, {x[1][1]:10.2f})"
-            " {x[2]:10.2f} {x[3]:10.2f} {x[4]:10.2f}")
+            status_str_list.append(f"{x[0]},({x[1][0]:10.2f},{x[1][1]:10.2f})"
+                                   f",{x[2]:10.2f},{x[3]:10.2f},{x[4]:10.2f}")
         return status_str_list
 
+
     def yearly_returns(self, final_frac_capital, period_years):
-        # Estimate the yearly compounding rate from total returns
-        if final_frac_capital == 0.0:
+        """
+        Estimate the yearly compounding rate from total returns.
+
+        Parameters:
+        final_frac_capital (float): The final fraction of the initial capital after the investment period.
+        period_years (float): The number of years over which the investment was held.
+
+        Returns:
+        float: The estimated yearly compounding rate.
+        """
+        # Check if there are no returns or the input is invalid
+        if final_frac_capital <= 0.0 or period_years <= 0:
             return 0
-        elif final_frac_capital > 0.0:
-            return math.exp(math.log(final_frac_capital) / period_years) - 1
-        else:
-            # total_returns < 0.0
-            return math.exp(math.log(final_frac_capital) / period_years) - 1
+
+        # Calculate and return the yearly compounding rate
+        return math.exp(math.log(final_frac_capital) / period_years) - 1
 
     def total_returns(self):
-        time_span = self.trades[-1][0] - self.trades[0][0]
+        # Ensure there are enough trades to calculate returns
+        if len(self.trades) < 2 or self.init_capital <= 0:
+            return (self.start_date, 0, 0, 0, self.model_name)
+
+        # Calculate time span in years
+        time_span_years = (self.trades[-1][0] - self.trades[0][0]).days / 365
+
+        # Calculate fractional returns
         frac_returns = (self.capital - self.init_capital) / self.init_capital
-        yearly_return_rate = self.yearly_returns(1 + frac_returns, time_span.days / 365)
+
+        # Calculate yearly return rate
+        yearly_return_rate = self.yearly_returns(1 + frac_returns, time_span_years)
+
         return (self.start_date,
                 frac_returns,
                 yearly_return_rate,
-                time_span.days / 365,
+                time_span_years,
                 self.model_name)
 
 
@@ -160,7 +176,7 @@ class KellyModel(Model):
             self.last_rebalance = date
         # skip forward to next rebalance period
         test_skip_date = min([self.last_rebalance + self.rebalance_period - PADDING_TIME_DELTA,
-                             self.end_date - PADDING_TIME_DELTA])
+                              self.end_date - PADDING_TIME_DELTA])
         if date >= test_skip_date:
             return None
         else:

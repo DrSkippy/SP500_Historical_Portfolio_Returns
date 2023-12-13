@@ -8,8 +8,8 @@ logger = logging.getLogger(__name__)
 
 locale.setlocale(locale.LC_ALL, '')
 
-sp500path = "./data/SP500.tab"
-interestpath = "./data/interest.tab"
+sp500_input_path = "./data/SP500.tab"
+interest_input_path = "./data/interest.tab"
 
 FMT_IN = "%b %d, %Y"
 FMT_out = "%Y-%m-%d"
@@ -46,7 +46,7 @@ def get_interest():
     """
     interest_data = {}
 
-    with open(interestpath, "r") as infile:
+    with open(interest_input_path, "r") as infile:
         reader = csv.reader(infile, delimiter="\t")
         header = next(reader)[1:]  # Reading the header
 
@@ -56,7 +56,7 @@ def get_interest():
 
     # Debugging information
     logger.info(f"Reading interest data")
-    logger.info(f"Path = {interestpath}")
+    logger.info(f"Path = {interest_input_path}")
     logger.info(f"Read {len(interest_data)} rows")
     logger.info(f"Fields = {header}")
 
@@ -72,7 +72,7 @@ def get_sp500():
     """
     parsed_data = []
 
-    with open(sp500path, "r") as infile:
+    with open(sp500_input_path, "r") as infile:
         reader = csv.reader(infile, delimiter="\t")
         header = next(reader)  # Reading the header
 
@@ -87,7 +87,7 @@ def get_sp500():
 
     # Debugging information
     logger.info(f"Reading S&P 500 data")
-    logger.info(f"Path = {sp500path}")
+    logger.info(f"Path = {sp500_input_path}")
     logger.info(f"Read {len(parsed_data)} rows")
     logger.info(f"Fields = {header}")
 
