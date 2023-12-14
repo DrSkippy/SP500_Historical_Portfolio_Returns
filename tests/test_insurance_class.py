@@ -13,7 +13,7 @@ class TestInsuranceModel(unittest.TestCase):
         self.assertEqual(self.insurance_model.init_insurance_period, 90)
         self.assertEqual(self.insurance_model.init_insurance_rate, -0.005)
         self.assertEqual(self.insurance_model.init_insurance_deductible, 0.15)
-        self.assertEqual(self.insurance_model.model_name, "Insurance_0.1_90")
+        self.assertEqual(self.insurance_model.model_name, "Insurance_0.1_0.15_90")
         self.assertEqual(self.insurance_model.stock_frac, 0.90)
     def test_model_config(self):
         start_date = datetime.datetime(2020, 1, 1)

@@ -51,23 +51,31 @@ def model_tester(model, data, years=10):
     return model_returns
 
 
-def model_generator():
+def model_generator_kelly():
     """
     Generates models for testing.
     """
-    for i in [0.1, 0.2, 0.3, 0.4, 0.5]:
+    for i in [0.1, 0.2, 0.25, 0.15]:
         for j in [90, 180]:
-            logging.debug(f"Testing KellyModel with bond_fract={i}, rebalance_period={j}")
+            logging.info(f"Testing KellyModel with bond_fract={i}, rebalance_period={j}")
             yield KellyModel(bond_fract=i, rebalance_period=j)
 
 
-def model_generator2():
+def model_generator_bnh():
     """
     Generates models for testing.
     """
-    logging.debug(f"Testing Buy and Hold Model")
+    logging.info(f"Testing Buy and Hold Model")
     yield Model()
 
+def model_generator_insurance():
+    """
+    Generates models for testing.
+    """
+    for i in [0.05, 0.1]:
+        for j in [0.08, 0.10, .15]:
+            logging.info(f"Testing InsuranceModel with insurance_fract={i}, insurance_deductible={j}")
+            yield InsuranceModel(insurance_frac=i, insurance_deductible=j)
 
 def model_test_manager(years, date_str):
     """
@@ -76,7 +84,7 @@ def model_test_manager(years, date_str):
     logging.info(f"Testing models for {years} years")
     d, h = get_combined_data()
 
-    for m in model_generator():
+    for m in model_generator_kelly():
         rets = model_tester(m, d, years=years)
 
         fn = f"{path}returns_{years}_{rets[0][-1]}_{date_str}.csv"

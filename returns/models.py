@@ -209,7 +209,7 @@ class InsuranceModel(KellyModel):
         self.init_insurance_payout_factor = insurance_payout_factor  # insurance covers losses x insurance_payout_factor
 
     def model_config(self, start_date, years=1):
-        self.model_name += f"_{self.init_insurance_frac:.2}_{self.init_insurance_period}"
+        self.model_name += f"_{self.init_insurance_frac:.2}_{self.init_insurance_deductible:.2}_{self.init_insurance_period}"
         self.capital = self.init_capital
         self.shares = 0
         self.trades = []  # list of tuples (date, price, shares)
