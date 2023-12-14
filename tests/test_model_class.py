@@ -1,5 +1,4 @@
 import unittest
-from unittest.mock import patch
 import datetime
 import math
 from returns.models import Model
@@ -62,7 +61,7 @@ class TestModel(unittest.TestCase):
         self.assertEqual(self.model.shares, _shares)
         self.assertEqual(self.model.capital, _capital)
         self.assertEqual(len(self.model.trades),_len_trades)
-    def test_trade1(self):
+    def test_trade_first(self):
         # Test the 'trade' method by simulating different scenarios
         # Example: self.model.trade(date, price)
         # Add assertions here
@@ -81,7 +80,7 @@ class TestModel(unittest.TestCase):
         self.assertTrue(self.model.last_trigger)
         self.assertIsNone(skip)
 
-    def test_trade2(self):
+    def test_trade_daily(self):
         # Test the 'trade' method by simulating different scenarios
         # Example: self.model.trade(date, price)
         # Add assertions here
@@ -98,7 +97,7 @@ class TestModel(unittest.TestCase):
         self.assertTrue(self.model.last_trigger)
         self.assertEqual(skip, datetime.datetime(2021, 12, 25, 0, 0))
 
-    def test_trade3(self):
+    def test_trade_last(self):
         # Test the 'trade' method by simulating different scenarios
         # Example: self.model.trade(date, price)
         # Add assertions here

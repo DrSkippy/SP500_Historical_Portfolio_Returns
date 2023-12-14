@@ -3,4 +3,4 @@
 .ipynb_checkpoints/
 __pycache__
 combined_data.csv
-
+app.log

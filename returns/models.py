@@ -83,7 +83,6 @@ class Model:
                                    f",{x[2]:10.2f},{x[3]:10.2f},{x[4]:10.2f}")
         return status_str_list
 
-
     def yearly_returns(self, final_frac_capital, period_years):
         """
         Estimate the yearly compounding rate from total returns.
@@ -160,10 +159,10 @@ class KellyModel(Model):
         self.trades.append((date, price, self.shares, self.capital, self.shares))
 
     def last_trade(self, date, price):
-        interest_factor = price[1] / 365
+        interest_factor = price[1]
         if (date - self.last_rebalance).days > 0:
             # interest on capital, compound daily
-            self.capital *= (1. + interest_factor) ** (date - self.last_rebalance).days
+            self.capital *= (1. + interest_factor) ** ((date - self.last_rebalance).days / 365)
         self.capital += self.shares * price[0]  # sell all stocks
         delta_shares = -self.shares
         self.shares = 0
@@ -185,8 +184,7 @@ class KellyModel(Model):
     def rebalance(self, date, price):
         # interest on capital, compound daily
         logger.info(f"Trading to re-balance on {date}")
-        interest_factor = price[1] / 365
-        self.capital *= (1. + interest_factor) ** (date - self.last_rebalance).days
+        self.capital *= (1. + price[1]) ** ((date - self.last_rebalance).days / 365)
         # current stock value
         stock_value = self.shares * price[0]
         # daily total capital
@@ -201,16 +199,17 @@ class InsuranceModel(KellyModel):
     model_name = "Insurance"
 
     def __init__(self, capital=10000, insurance_frac=0.10, insurance_period=90, insurance_rate=-0.005,
-                 insurance_deductible=0.15):
+                 insurance_deductible=0.15, insurance_payout_factor=10):
         self.init_capital = capital
         # Assume insurance covers the losses above a minimum size (deductible?)
         self.init_insurance_frac = insurance_frac  # capital allocated to insurance strategy
         self.init_insurance_period = insurance_period  # period of insurance rate
         self.init_insurance_rate = insurance_rate  # insurance rate
         self.init_insurance_deductible = insurance_deductible  # insurance covers losses over this large in period
+        self.init_insurance_payout_factor = insurance_payout_factor  # insurance covers losses x insurance_payout_factor
 
     def model_config(self, start_date, years=1):
-        self.name += f"_{self.init_insurance_frac:.2}_{self.init_insurance_period}"
+        self.model_name += f"_{self.init_insurance_frac:.2}_{self.init_insurance_period}"
         self.capital = self.init_capital
         self.shares = 0
         self.trades = []  # list of tuples (date, price, shares)
@@ -231,33 +230,35 @@ class InsuranceModel(KellyModel):
         self.rebalance_period = datetime.timedelta(days=self.init_insurance_period)
         self.last_rebalance = self.start_date
         self.last_price = []  # list of prices for losses days
-        self.losses_days = 10  # number of days to calculate losses
+        self.losses_days = 6  # number of days to calculate losses
         logger.info(f"Model configured with insurance fraction = {self.insurance_frac}")
         logger.info(f"Model configured with insurance rate = {self.insurance_rate}")
         logger.info(f"Model configured with insurance deductible = {self.insurance_deductible}")
         logger.info(f"Model configured with re-balance period = {self.rebalance_period}")
+        logger.info(f"Model configured with insurance payout factor = {self.init_insurance_payout_factor}")
 
     def daily_trade(self, date, price):
         payout = False
         # Loss insurance triggered?
         if len(self.last_price) < self.losses_days:
             # Not enough history to judge loss for payoff
-            self.last_price.append(price)
+            self.last_price.append(price[0])
         else:
             start_price = self.last_price.pop(0)
-            loss = (price - start_price) / start_price
-            if loss < -self.insurance_deductible:
+            loss_frac = (price[0] - start_price) / start_price
+            if loss_frac <= -self.insurance_deductible:
                 payout = True
                 # insurance pays out
-                self.capital -= self.capital * loss
+                self.capital = -self.capital * loss_frac * self.init_insurance_payout_factor
                 self.trades.append((date, price, 0, self.capital, self.shares))
-                self.last_price = [price]
+                self.last_price = [price[0]]  # starting over
             else:
-                self.last_price.append(price)
+                self.last_price.append(price[0])
 
-        if date >= self.last_rebalance + self.rebalance_period and not payout:
-            _price = (price, -self.insurance_rate)
+        if date >= self.last_rebalance + self.rebalance_period or payout:
+            _price = (price[0], -self.insurance_rate)
             self.rebalance(date, _price)
+            self.last_rebalance = date
 
 
 if __name__ == "__main__":
