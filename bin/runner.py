@@ -11,7 +11,7 @@ from returns.models import *
 logging.basicConfig(level=logging.DEBUG,
                     format='%(process)d|%(asctime)s|%(levelname)s|%(funcName)20s()|%(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S',
-                    filename='app.log',
+                    filename='app1.log',
                     filemode='w')
 
 path = "./out_data/"
@@ -73,7 +73,7 @@ def model_generator_insurance():
     Generates models for testing.
     """
     for i in [0.05, 0.1]:
-        for j in [0.08, 0.10, .15]:
+        for j in [0.09, 0.12, 0.18]:
             logging.info(f"Testing InsuranceModel with insurance_fract={i}, insurance_deductible={j}")
             yield InsuranceModel(insurance_frac=i, insurance_deductible=j)
 
@@ -82,9 +82,9 @@ def model_test_manager(years, date_str):
     Manages the testing of models for the specified years.
     """
     logging.info(f"Testing models for {years} years")
-    d, h = get_combined_data()
+    d, h = get_combined_sp500_interest_data()
 
-    for m in model_generator_kelly():
+    for m in model_generator_insurance():
         rets = model_tester(m, d, years=years)
 
         fn = f"{path}returns_{years}_{rets[0][-1]}_{date_str}.csv"

@@ -252,6 +252,8 @@ class InsuranceModel(KellyModel):
                 self.capital = -self.capital * loss_frac * self.init_insurance_payout_factor
                 self.trades.append((date, price, 0, self.capital, self.shares))
                 self.last_price = [price[0]]  # starting over
+                logger.info(f"Insurance payout on {date} of {self.capital}")
+                logger.info(f"Triggered by loss of {loss_frac} based on {self.losses_days} days of history")
             else:
                 self.last_price.append(price[0])
 
