@@ -14,6 +14,7 @@ matplotlib = "^3.8.0"
 notebook = "^7.0.4"
 jupyter = "^1.0.0"
 seaborn = "^0.13.0"
+pytest = "^7.4.3"
 
 
 [build-system]

@@ -1,6 +1,3 @@
-import csv
-import datetime
-import logging
 import multiprocessing as mp
 from itertools import repeat
 
@@ -22,7 +19,7 @@ def model_tester(model, data, years=10):
     Tests the given model on the provided data for the specified number of years.
     """
     test_interval = datetime.timedelta(days=STRIDE_DAYS)
-    test_start_date = data[0][0] # first (oldest) date in data
+    test_start_date = data[0][0]  # first (oldest) date in data
     model_returns = []
 
     logging.info("Starting model testing")
@@ -68,6 +65,7 @@ def model_generator_bnh():
     logging.info(f"Testing Buy and Hold Model")
     yield Model()
 
+
 def model_generator_insurance():
     """
     Generates models for testing.
@@ -76,6 +74,7 @@ def model_generator_insurance():
         for j in [0.09, 0.12, 0.18]:
             logging.info(f"Testing InsuranceModel with insurance_fract={i}, insurance_deductible={j}")
             yield InsuranceModel(insurance_frac=i, insurance_deductible=j)
+
 
 def model_test_manager(years, date_str):
     """

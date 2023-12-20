@@ -207,6 +207,7 @@ class InsuranceModel(KellyModel):
         self.init_insurance_rate = insurance_rate  # insurance rate
         self.init_insurance_deductible = insurance_deductible  # insurance covers losses over this large in period
         self.init_insurance_payout_factor = insurance_payout_factor  # insurance covers losses x insurance_payout_factor
+        logger.info("Model initialized, but not configured")
 
     def model_config(self, start_date, years=1):
         self.model_name += f"_{self.init_insurance_frac:.2}_{self.init_insurance_deductible:.2}_{self.init_insurance_period}"
@@ -262,10 +263,3 @@ class InsuranceModel(KellyModel):
             self.rebalance(date, _price)
             self.last_rebalance = date
 
-
-if __name__ == "__main__":
-    m = Model()
-    print(m.yearly_returns(1.1, 1))
-    print(m.yearly_returns(0.75, 1))
-    print(m.yearly_returns(5, 2))
-    print(m.yearly_returns(0, 2))
